@@ -72,6 +72,10 @@ workflow BamToUnmappedBams {
     Array[Array[File]] output_bams = SortSam.sorted_bam # why is it Array of Array of files?
   
   }
+  meta {
+      author: "Alex Hsieh"
+      email: "ahsieh@broadinstitute.org"
+  }
 }
 
 task RevertSam {
