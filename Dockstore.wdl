@@ -48,27 +48,29 @@ workflow BamToUnmappedBams {
         gatk_path = gatk_path
     }
 
-
-    String output_basename = basename(select_first(RevertSam.unmapped_bams), ".coord.sorted.unmapped.bam")
-    Float unmapped_bam_size = size(select_first(RevertSam.unmapped_bams), "GB")
+    String output_basename = basename(RevertSam.unmapped_bam, ".coord.sorted.unmapped.bam")
+    Float unmapped_bam_size = size(RevertSam.unmapped_bam, "GB")
 
     call SortSam {
       input:
-        input_bam = select_first(RevertSam.unmapped_bams),
+        input_bam = RevertSam.unmapped_bam,
         sorted_bam_name = output_basename + ".unmapped.bam",
         disk_size = ceil(unmapped_bam_size * 6) + additional_disk_size,
         docker = gatk_docker,
         gatk_path = gatk_path
     }
+
+
   
   }
 
   output {
 
+    #Array[Array[File]] output_bams = SortSam.sorted_bam # why is it Array of Array of files?
+
     Array[File] output_bams = SortSam.sorted_bam 
   
   }
-
   meta {
       author: "Alex Hsieh"
       email: "ahsieh@broadinstitute.org"
@@ -79,6 +81,7 @@ task RevertSam {
   input {
     #Command parameters
     File input_bam
+    
     String gatk_path
 
     #Runtime parameters
@@ -90,12 +93,11 @@ task RevertSam {
     Int command_mem_gb = machine_mem_gb - 1    ####Needs to occur after machine_mem_gb is set 
 
   command { 
- 
+    
     ~{gatk_path} --java-options "-Xmx~{command_mem_gb}g" \
     RevertSam \
     --INPUT ~{input_bam} \
-    --OUTPUT ./ \
-    --OUTPUT_BY_READGROUP true \
+    --OUTPUT "./~{input_bam}.​unmapped.​bam" \
     --VALIDATION_STRINGENCY LENIENT \
     --ATTRIBUTE_TO_CLEAR FT \
     --ATTRIBUTE_TO_CLEAR CO \
@@ -108,7 +110,9 @@ task RevertSam {
     preemptible: preemptible_attempts
   }
   output {
-    Array[File] unmapped_bams = glob("*.bam")
+    #Array[File] unmapped_bams = glob("*.bam")
+    
+    File unmapped_bam = "./~{input_bam}.​unmapped.​bam"
   }
 }
 
