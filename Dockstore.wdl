@@ -83,6 +83,7 @@ task RevertSam {
     File input_bam
 
     String outprefix = basename(input_bam)
+    String outfname = "~{outprefix}" + ".unmapped.​bam" 
     
     String gatk_path
 
@@ -100,7 +101,7 @@ task RevertSam {
     ~{gatk_path} --java-options "-Xmx~{command_mem_gb}g" \
     RevertSam \
     --INPUT ~{input_bam} \
-    --OUTPUT "~{outprefix}.​unmapped.​bam" \
+    --OUTPUT ~{outfname} \
     --VALIDATION_STRINGENCY LENIENT \
     --ATTRIBUTE_TO_CLEAR FT \
     --ATTRIBUTE_TO_CLEAR CO \
@@ -115,7 +116,7 @@ task RevertSam {
   output {
     #Array[File] unmapped_bams = glob("*.bam")
     
-    File unmapped_bam = "~{outprefix}.​unmapped.​bam"
+    File unmapped_bam = "~{outfname}"
   }
 }
 
