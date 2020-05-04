@@ -60,10 +60,6 @@ workflow BamToUnmappedBams {
         docker = gatk_docker,
         gatk_path = gatk_path
     }
-
-
-    
-
   
   }
 
@@ -72,6 +68,7 @@ workflow BamToUnmappedBams {
     Array[File] output_bams = SortSam.sorted_bam 
   
   }
+
   meta {
       author: "Alex Hsieh"
       email: "ahsieh@broadinstitute.org"
