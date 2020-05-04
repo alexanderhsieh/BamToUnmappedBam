@@ -48,27 +48,28 @@ workflow BamToUnmappedBams {
         gatk_path = gatk_path
     }
 
-    String output_basename = basename(RevertSam.unmapped_bam, ".unmapped.bam")
-    Float unmapped_bam_size = size(RevertSam.unmapped_bam, "GB")
+    scatter (unmapped_bam in RevertSam.unmapped_bams) {
 
-    call SortSam {
-      input:
-        input_bam = RevertSam.unmapped_bam,
-        sorted_bam_name = output_basename + ".unmapped.bam",
-        disk_size = ceil(unmapped_bam_size * 6) + additional_disk_size,
-        docker = gatk_docker,
-        gatk_path = gatk_path
+      String output_basename = basename(unmapped_bam, ".coord.sorted.unmapped.bam")
+      Float unmapped_bam_size = size(unmapped_bam, "GB")
+
+      call SortSam {
+        input:
+          input_bam = unmapped_bam,
+          sorted_bam_name = output_basename + ".unmapped.bam",
+          disk_size = ceil(unmapped_bam_size * 6) + additional_disk_size,
+          docker = gatk_docker,
+          gatk_path = gatk_path
+      }
+
     }
-
 
   
   }
 
   output {
 
-    #Array[Array[File]] output_bams = SortSam.sorted_bam # why is it Array of Array of files?
-
-    Array[File] output_bams = SortSam.sorted_bam 
+    Array[Array[File]] output_bams = SortSam.sorted_bam # why is it Array of Array of files?
   
   }
   meta {
@@ -81,9 +82,6 @@ task RevertSam {
   input {
     #Command parameters
     File input_bam
-
-    String outprefix = basename(input_bam, '.bam')
-    
     String gatk_path
 
     #Runtime parameters
@@ -95,11 +93,12 @@ task RevertSam {
     Int command_mem_gb = machine_mem_gb - 1    ####Needs to occur after machine_mem_gb is set 
 
   command { 
-    
+ 
     ~{gatk_path} --java-options "-Xmx~{command_mem_gb}g" \
     RevertSam \
     --INPUT ~{input_bam} \
-    --OUTPUT "~{outprefix}.​unmapped.​bam" \
+    --OUTPUT ./ \
+    --OUTPUT_BY_READGROUP true \
     --VALIDATION_STRINGENCY LENIENT \
     --ATTRIBUTE_TO_CLEAR FT \
     --ATTRIBUTE_TO_CLEAR CO \
@@ -112,9 +111,7 @@ task RevertSam {
     preemptible: preemptible_attempts
   }
   output {
-    #Array[File] unmapped_bams = glob("*.bam")
-    
-    File unmapped_bam = "~{outprefix}.​unmapped.​bam"
+    Array[File] unmapped_bams = glob("*.bam")
   }
 }
 
