@@ -39,10 +39,12 @@ workflow BamToUnmappedBams {
 
 
     Float input_size = size(input_bams[scatter_index], "GB")
-    
+    String outprefix = basename(input_bams[scatter_index], ".bam")
+
     call RevertSam {
       input:
         input_bam = input_bams[scatter_index],
+        outfname = outprefix + ".unmapped.bam",
         disk_size = ceil(input_size * 3) + additional_disk_size,
         docker = gatk_docker,
         gatk_path = gatk_path
@@ -81,9 +83,7 @@ task RevertSam {
   input {
     #Command parameters
     File input_bam
-
-    String outprefix = basename(input_bam)
-    String outfname = "~{outprefix}" + ".unmapped.​bam" 
+    String outfname
     
     String gatk_path
 
