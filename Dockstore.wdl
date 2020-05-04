@@ -48,7 +48,7 @@ workflow BamToUnmappedBams {
         gatk_path = gatk_path
     }
 
-    String output_basename = basename(RevertSam.unmapped_bam, ".coord.sorted.unmapped.bam")
+    String output_basename = basename(RevertSam.unmapped_bam, ".unmapped.bam")
     Float unmapped_bam_size = size(RevertSam.unmapped_bam, "GB")
 
     call SortSam {
@@ -97,7 +97,7 @@ task RevertSam {
     ~{gatk_path} --java-options "-Xmx~{command_mem_gb}g" \
     RevertSam \
     --INPUT ~{input_bam} \
-    --OUTPUT "./~{input_bam}.​unmapped.​bam" \
+    --OUTPUT "~{input_bam}.​unmapped.​bam" \
     --VALIDATION_STRINGENCY LENIENT \
     --ATTRIBUTE_TO_CLEAR FT \
     --ATTRIBUTE_TO_CLEAR CO \
@@ -112,7 +112,7 @@ task RevertSam {
   output {
     #Array[File] unmapped_bams = glob("*.bam")
     
-    File unmapped_bam = "./~{input_bam}.​unmapped.​bam"
+    File unmapped_bam = "~{input_bam}.​unmapped.​bam"
   }
 }
 
