@@ -81,6 +81,8 @@ task RevertSam {
   input {
     #Command parameters
     File input_bam
+
+    String outprefix = basename(input_bam)
     
     String gatk_path
 
@@ -93,11 +95,12 @@ task RevertSam {
     Int command_mem_gb = machine_mem_gb - 1    ####Needs to occur after machine_mem_gb is set 
 
   command { 
-    
+    output_path=$(pwd)
+
     ~{gatk_path} --java-options "-Xmx~{command_mem_gb}g" \
     RevertSam \
     --INPUT ~{input_bam} \
-    --OUTPUT "~{input_bam}.​unmapped.​bam" \
+    --OUTPUT "~{outprefix}.​unmapped.​bam" \
     --VALIDATION_STRINGENCY LENIENT \
     --ATTRIBUTE_TO_CLEAR FT \
     --ATTRIBUTE_TO_CLEAR CO \
@@ -112,7 +115,7 @@ task RevertSam {
   output {
     #Array[File] unmapped_bams = glob("*.bam")
     
-    File unmapped_bam = "~{input_bam}.​unmapped.​bam"
+    File unmapped_bam = "~{outprefix}.​unmapped.​bam"
   }
 }
 
