@@ -48,28 +48,28 @@ workflow BamToUnmappedBams {
         gatk_path = gatk_path
     }
 
-    scatter (unmapped_bam in RevertSam.unmapped_bams) {
 
-      String output_basename = basename(unmapped_bam, ".coord.sorted.unmapped.bam")
-      Float unmapped_bam_size = size(unmapped_bam, "GB")
+    String output_basename = basename(select_first(RevertSam.unmapped_bams), ".coord.sorted.unmapped.bam")
+    Float unmapped_bam_size = size(select_first(RevertSam.unmapped_bams), "GB")
 
-      call SortSam {
-        input:
-          input_bam = unmapped_bam,
-          sorted_bam_name = output_basename + ".unmapped.bam",
-          disk_size = ceil(unmapped_bam_size * 6) + additional_disk_size,
-          docker = gatk_docker,
-          gatk_path = gatk_path
-      }
-
+    call SortSam {
+      input:
+        input_bam = select_first(RevertSam.unmapped_bams),
+        sorted_bam_name = output_basename + ".unmapped.bam",
+        disk_size = ceil(unmapped_bam_size * 6) + additional_disk_size,
+        docker = gatk_docker,
+        gatk_path = gatk_path
     }
+
+
+    
 
   
   }
 
   output {
 
-    Array[Array[File]] output_bams = SortSam.sorted_bam # why is it Array of Array of files?
+    Array[File] output_bams = SortSam.sorted_bam 
   
   }
   meta {
